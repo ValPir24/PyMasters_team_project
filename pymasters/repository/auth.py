@@ -8,8 +8,8 @@ from sqlalchemy.orm import Session
 from jose import JWTError, jwt
 from starlette import status
 
-from database.models import User
-from database.db import get_db
+from pymasters.database.models import User
+from pymasters.database.db import get_db
 
 from settings import SECRET_KEY, ALGORITHM, oauth2_scheme
 
@@ -96,3 +96,13 @@ async def get_current_user(token: str = Depends(oauth2_scheme), db: Session = De
         raise credentials_exception
     return user
 
+# Функції для перевірки ролей користувачів 
+async def get_admin_user(current_user: User = Depends(get_current_user)):
+    if current_user.role != "admin":
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Operation not permitted")
+    return current_user
+
+async def get_moderator_user(current_user: User = Depends(get_current_user)):
+    if current_user.role not in ["admin", "moderator"]:
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Operation not permitted")
+    return current_user

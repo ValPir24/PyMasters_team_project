@@ -6,11 +6,9 @@ from fastapi import UploadFile, HTTPException, status
 from fastapi.security import OAuth2PasswordRequestForm
 
 
-from database.models import User
-
-from repository.auth import create_access_token, create_refresh_token, Hash, get_email_form_refresh_token
-
-from shemas import UserModel
+from pymasters.database.models import User
+from pymasters.repository.auth import create_access_token, create_refresh_token, Hash, get_email_form_refresh_token
+from pymasters.schemas import UserModel
 
 hash_handler = Hash()
 
@@ -41,10 +39,14 @@ class UserService:
         
 
     @staticmethod
-    def creat_new_user(body: UserModel, db: Session ):
-        
-        UserService.check_username_availablity(username=body.username, db=db )
-        new_user = User(email=body.username, password=hash_handler.get_password_hash(body.password))
+    def creat_new_user(body: UserModel, db: Session):
+        UserService.check_username_availablity(username=body.username, db=db)
+        # Перевірка, чи є це перший користувач. Якщо так, встановлюємо роль "admin".
+        if db.query(User).count() == 0:
+            role = "admin"
+        else:
+            role = "user"
+        new_user = User(email=body.username, password=hash_handler.get_password_hash(body.password), role=role)
         new_user = UserService.save_user(new_user, db)
         return new_user
     

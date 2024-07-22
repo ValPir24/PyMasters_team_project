@@ -4,22 +4,22 @@ from fastapi_mail import FastMail, MessageSchema, MessageType
 
 from sqlalchemy.orm import Session
 
-from services.auth_service import get_email_from_token
+from pymasters.services.auth_service import get_email_from_token
 
 from typing import List
 
 from datetime import date
 
-from shemas import UserModel, EmailSchema, RequestEmail, UserDisplayModel
-from database.db import get_db
-from database.models import User
+from pymasters.schemas import UserModel, EmailSchema, RequestEmail, UserDisplayModel
+from pymasters.database.db import get_db
+from pymasters.database.models import User
 
-from repository.users_repo import UserService, UsernameTaken, LoginFailed
-from repository.auth import get_current_user
+from pymasters.repository.users_repo import UserService, UsernameTaken, LoginFailed
+from pymasters.repository.auth import get_current_user, get_admin_user, get_moderator_user
 
-from services.email import send_email
+from pymasters.services.email import send_email
 
-from settings import conf
+from pymasters.settings import conf
 
 router = APIRouter(prefix= '/users', tags=['users'])
 
@@ -88,3 +88,14 @@ async def refresh_token(credentials: HTTPAuthorizationCredentials = Security(sec
     
     return {"access_token": access_token, "refresh_token": token, "token_type": "bearer"}
 
+# Додаткові маршрути для перевірки ролей
+
+@router.get('/admin')
+async def admin_access(current_user: User = Depends(get_admin_user)):
+    """Маршрут, доступний лише для адміністраторів."""
+    return {"message": "Welcome, admin!"}
+
+@router.get('/moderator')
+async def moderator_access(current_user: User = Depends(get_moderator_user)):
+    """Маршрут, доступний для модераторів та адміністраторів."""
+    return {"message": "Welcome, moderator!"}
