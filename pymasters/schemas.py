@@ -1,4 +1,4 @@
-from datetime import date
+from datetime import datetime
 
 from typing import List, Optional
 from fastapi import UploadFile
@@ -29,6 +29,31 @@ class PhotoDisplay(BaseModel):
         orm_mode = True
 
 
+class CommentBase(BaseModel):
+    content: str
+
+class CommentCreate(CommentBase):
+    pass
+
+class CommentUpdate(CommentBase):
+    pass
+
+class CommentInDBBase(CommentBase):
+    id: int
+    user_id: int
+    photo_id: int
+    created_at: datetime
+    updated_at: datetime
+
+    class Config:
+        orm_mode = True
+
+class Comment(CommentInDBBase):
+    pass
+
+class TokenData(BaseModel):
+    username: Optional[str] = None
+    
 class UserModel(BaseModel):
     username: str
     password: str
